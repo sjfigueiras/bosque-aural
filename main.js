@@ -4,67 +4,67 @@
 // — Árboles —
 const ARBOLES = [
   {
-    archivo: 'arboles/Santi Figueiras - Hacia lo Profundo.wav',
+    archivo: 'arboles/Santi Figueiras - Hacia lo Profundo.mp3',
     nombre: 'Hacia lo Profundo',
     pos: { x: 0, y: 0, z: -14 }
   },
   {
-    archivo: 'arboles/BrunoMarchetti_BrunoMarchetti_Fungi_2025.wav',
+    archivo: 'arboles/BrunoMarchetti_BrunoMarchetti_Fungi_2025.mp3',
     nombre: 'Fungi',
     pos: { x: -18, y: 2, z: 8 }
   },
   {
-    archivo: 'arboles/Daniel Lanark - La luz que refleja en el piso de una habitación vacía.wav',
+    archivo: 'arboles/Daniel Lanark - La luz que refleja en el piso de una habitación vacía.mp3',
     nombre: 'La luz que refleja',
     pos: { x: 20, y: -3, z: 5 }
   },
   {
-    archivo: 'arboles/Vidaesquiva_Arroyo_2025.wav',
+    archivo: 'arboles/Vidaesquiva_Arroyo_2025.mp3',
     nombre: 'Arroyo',
     pos: { x: 5, y: 6, z: 18 }
   },
   {
-    archivo: 'arboles/AbiGail_AbigailCohen_CadaverExquisito_2025.wav.wav',
+    archivo: 'arboles/AbiGail_AbigailCohen_CadaverExquisito_2025.mp3',
     nombre: 'Cadáver Exquisito',
     pos: { x: -10, y: -2, z: -24 }
   },
   {
-    archivo: 'arboles/AloArco_AlondraAriza_Yugen_2025.wav',
+    archivo: 'arboles/AloArco_AlondraAriza_Yugen_2025.mp3',
     nombre: 'Yugen',
     pos: { x: 28, y: 1, z: -16 }
   },
   {
-    archivo: 'arboles/Cuarto Oscuro_Ronnie Bassili_Nébula_2025.wav',
+    archivo: 'arboles/Cuarto Oscuro_Ronnie Bassili_Nébula_2025.mp3',
     nombre: 'Nébula',
     pos: { x: -26, y: 4, z: -12 }
   },
   {
-    archivo: 'arboles/Daniel Garcia - sliding on the heights - Dan Torch.wav',
+    archivo: 'arboles/Daniel Garcia - sliding on the heights - Dan Torch.mp3',
     nombre: 'Sliding on the Heights',
     pos: { x: 14, y: -4, z: -30 }
   },
   {
-    archivo: 'arboles/FernandoGuerra_(im)pulso_2025.wav',
+    archivo: 'arboles/FernandoGuerra_(im)pulso_2025.mp3',
     nombre: '(im)pulso',
     pos: { x: -8, y: 5, z: 32 }
   },
   {
-    archivo: 'arboles/PPP_AgustinaPaz_Loro_2025.wav',
+    archivo: 'arboles/PPP_AgustinaPaz_Loro_2025.mp3',
     nombre: 'Loro',
     pos: { x: -30, y: -1, z: 20 }
   },
   {
-    archivo: 'arboles/Rocio Morgenstern - Desde nuestras ruinas.wav',
+    archivo: 'arboles/Rocio Morgenstern - Desde nuestras ruinas.mp3',
     nombre: 'Desde nuestras ruinas',
     pos: { x: 22, y: 3, z: 26 }
   },
   {
-    archivo: 'arboles/Synthiago Duran-Estalactitas.wav',
+    archivo: 'arboles/Synthiago Duran-Estalactitas.mp3',
     nombre: 'Estalactitas',
     pos: { x: -20, y: -5, z: -32 }
   },
   {
-    archivo: 'arboles/_AlejandroZuluaga_Medikal_2025.wav',
+    archivo: 'arboles/_AlejandroZuluaga_Medikal_2025.mp3',
     nombre: 'Medikal',
     pos: { x: 34, y: 2, z: -4 }
   }
