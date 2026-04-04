@@ -153,7 +153,9 @@ async function cargarArboles(audioCtx) {
   const promesas = ARBOLES.map(arbol => new Promise(resolve => {
     try {
       const rutaAudio = resolverRutaAudio(arbol.archivo);
-      const el = new Audio(rutaAudio);
+      const el = new Audio();
+      el.crossOrigin = 'anonymous';
+      el.src = rutaAudio;
       el.loop = true;
       el.preload = 'auto';
 
