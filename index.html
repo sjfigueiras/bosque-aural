@@ -1,130 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Bosque Aural</title>
-  <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #080808;
-      color: #d0d0d0;
-      font-family: 'Courier New', Courier, monospace;
-      height: 100vh;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    /* — Pantalla de inicio — */
-    #inicio {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-    }
-
-    #inicio h1 {
-      font-size: clamp(1.4rem, 4vw, 2.2rem);
-      font-weight: 300;
-      letter-spacing: 0.3em;
-      text-transform: lowercase;
-    }
-
-    #inicio .subtitulo {
-      font-size: 0.7rem;
-      color: #555;
-      letter-spacing: 0.15em;
-      text-align: center;
-      line-height: 2;
-    }
-
-    #btn-entrar {
-      margin-top: 1rem;
-      background: none;
-      border: 1px solid #444;
-      color: #888;
-      padding: 0.7rem 2.5rem;
-      font-family: inherit;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      cursor: pointer;
-      transition: border-color 0.4s, color 0.4s;
-    }
-
-    #btn-entrar:hover:not(:disabled) {
-      border-color: #d0d0d0;
-      color: #d0d0d0;
-    }
-
-    #btn-entrar:disabled {
-      cursor: default;
-    }
-
-    /* — Bosque — */
-    #bosque {
-      display: none;
-      position: absolute;
-      inset: 0;
-      cursor: none;
-    }
-
-    /* HUD: centrado en pantalla */
-    #hud {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: clamp(0.75rem, 2vw, 1.25rem);
-      pointer-events: none;
-    }
-
-    /* Controles */
-    #controles {
-      font-size: clamp(0.75rem, 2.2vw, 1.15rem);
-      color: #3a3a3a;
-      letter-spacing: 0.12em;
-      text-align: center;
-      line-height: 1.85;
-      transition: opacity 2s;
-      max-width: min(92vw, 52rem);
-    }
-    #controles.fade {
-      opacity: 0;
-    }
-
-    /* Escape hint */
-    #pausa-hint {
-      position: absolute;
-      top: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: clamp(0.6rem, 1.6vw, 0.85rem);
-      color: #2a2a2a;
-      letter-spacing: 0.1em;
-      text-align: center;
-    }
-
-    /* Minimapa */
-    #minimapa {
-      opacity: 0.75;
-      image-rendering: crisp-edges;
-      display: block;
-      width: min(900px, 88vmin);
-      height: min(900px, 88vmin);
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
   <div id="inicio">
@@ -143,6 +26,12 @@
     </div>
   </div>
 
+  <script>
+    window.BOSQUE_CONFIG = {
+      audioBaseUrl: 'https://pub-21c97ad091154eb8bae0f6c4167a6009.r2.dev'
+    };
+  </script>
   <script src="main.js"></script>
 </body>
+
 </html>

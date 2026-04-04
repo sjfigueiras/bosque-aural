@@ -1,6 +1,18 @@
 // El Bosque Aural — main.js
 // 13 fuentes, HRTF, navegación WASD + mouse, streaming por distancia
 
+const AUDIO_BASE_URL = (
+  window.BOSQUE_CONFIG?.audioBaseUrl ||
+  window.BOSQUE_AUDIO_BASE_URL ||
+  ''
+).trim().replace(/\/+$/, '');
+
+function resolverRutaAudio(rutaOriginal) {
+  if (!AUDIO_BASE_URL) return rutaOriginal;
+  const nombreArchivo = rutaOriginal.split('/').pop();
+  return `${AUDIO_BASE_URL}/${nombreArchivo}`;
+}
+
 // — Árboles —
 const ARBOLES = [
   {
@@ -140,7 +152,8 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
 async function cargarArboles(audioCtx) {
   const promesas = ARBOLES.map(arbol => new Promise(resolve => {
     try {
-      const el = new Audio(arbol.archivo);
+      const rutaAudio = resolverRutaAudio(arbol.archivo);
+      const el = new Audio(rutaAudio);
       el.loop = true;
       el.preload = 'auto';
 
@@ -171,7 +184,7 @@ async function cargarArboles(audioCtx) {
 
       el.addEventListener('canplaythrough', () => resolve(), { once: true });
       el.addEventListener('error', err => {
-        console.warn(`[bosque] no se pudo cargar: ${arbol.archivo}`, err);
+        console.warn(`[bosque] no se pudo cargar: ${rutaAudio}`, err);
         arbol.cargado = false;
         resolve();
       });
