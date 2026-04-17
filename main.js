@@ -1,5 +1,6 @@
 import { createMovementEngine } from './movement-engine.js';
 import { createKeyboardMouseMode } from './keyboard-mouse-mode.js';
+import { createRandomWalkMode } from './random-walk-mode.js';
 import {
   ARBOLES,
   DISTANCE_MODEL,
@@ -24,6 +25,25 @@ const AUDIO_BASE_URL = (
   window.BOSQUE_AUDIO_BASE_URL ||
   ''
 ).trim().replace(/\/+$/, '');
+
+function resolverModoMovimientoInicial() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedMode = String(
+    params.get('mode') ||
+    window.BOSQUE_CONFIG?.movementMode ||
+    window.BOSQUE_MOVEMENT_MODE ||
+    'keyboardMouse'
+  ).trim();
+
+  return requestedMode.toLowerCase() === 'randomwalk' ? 'randomWalk' : 'keyboardMouse';
+}
+
+function actualizarHintControles(hints) {
+  const controlesEl = document.getElementById('controles');
+  if (!controlesEl) return;
+
+  controlesEl.innerHTML = hints || '';
+}
 
 function resolverRutaAudio(rutaOriginal) {
   if (!AUDIO_BASE_URL) return rutaOriginal;
@@ -51,6 +71,7 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   document.getElementById('inicio').style.display = 'none';
   const bosqueEl = document.getElementById('bosque');
   bosqueEl.style.display = 'block';
+  const initialModeId = resolverModoMovimientoInicial();
 
   const movementEngine = createMovementEngine({
     initialState: INITIAL_MOVEMENT_STATE,
@@ -60,11 +81,23 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
         targetElement: bosqueEl,
         sensitivity: SENS_MOUSE,
         velocity: VELOCIDAD
+      }),
+      randomWalk: createRandomWalkMode({
+        velocity: VELOCIDAD * 0.50
       })
     },
-    initialModeId: 'keyboardMouse'
+    initialModeId,
+    onModeChange({ uiHints }) {
+      actualizarHintControles(uiHints);
+    }
   });
   movementState = movementEngine.getState();
+
+  window.BOSQUE_DEBUG = {
+    movementEngine,
+    setMovementMode: modeId => movementEngine.setMode(modeId),
+    getMovementMode: () => movementEngine.getModeId()
+  };
 
   // Desvanecer hint de controles después de 6s
   setTimeout(() => {

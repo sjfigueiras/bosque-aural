@@ -1,3 +1,6 @@
+export const KEYBOARD_MOUSE_UI_HINTS =
+  'wasd &ndash; moverse &nbsp;|&nbsp; mouse &ndash; orientarse &nbsp;|&nbsp; q/e &ndash; altura';
+
 export function createKeyboardMouseMode({
   targetElement,
   documentRef = document,
@@ -18,7 +21,14 @@ export function createKeyboardMouseMode({
   }
 
   return {
+    getUiHints() {
+      return KEYBOARD_MOUSE_UI_HINTS;
+    },
+
     setup() {
+      pressedKeys.clear();
+      yawDelta = 0;
+      pitchDelta = 0;
       requestPointerLock();
 
       handlePointerLockChange = () => {
@@ -50,6 +60,10 @@ export function createKeyboardMouseMode({
     },
 
     teardown() {
+      pressedKeys.clear();
+      yawDelta = 0;
+      pitchDelta = 0;
+
       if (handlePointerLockChange) {
         documentRef.removeEventListener('pointerlockchange', handlePointerLockChange);
       }
