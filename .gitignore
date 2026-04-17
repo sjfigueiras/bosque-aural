@@ -1,3 +1,4 @@
 arboles/
 .env
 .DS_Store
+graphify-out/
