@@ -1,3 +1,21 @@
+import { createMovementEngine } from './movement-engine.js';
+import { createKeyboardMouseMode } from './keyboard-mouse-mode.js';
+import {
+  ARBOLES,
+  DISTANCE_MODEL,
+  DIST_ACTIVACION,
+  ESCALA_POSICIONES,
+  FADE_TIEMPO,
+  INITIAL_MOVEMENT_STATE,
+  MAX_DIST,
+  PANNING_MODEL,
+  RADIO_BOSQUE,
+  REF_DIST,
+  ROLLOFF,
+  SENS_MOUSE,
+  VELOCIDAD
+} from './constants.js';
+
 // El Bosque Aural — main.js
 // 13 fuentes, HRTF, navegación WASD + mouse, streaming por distancia
 
@@ -13,92 +31,11 @@ function resolverRutaAudio(rutaOriginal) {
   return `${AUDIO_BASE_URL}/${nombreArchivo}`;
 }
 
-// — Árboles —
-const ARBOLES = [
-  {
-    archivo: 'arboles/Santi Figueiras - Hacia lo Profundo.mp3',
-    nombre: 'Hacia lo Profundo',
-    pos: { x: 0, y: 0, z: -14 }
-  },
-  {
-    archivo: 'arboles/BrunoMarchetti_BrunoMarchetti_Fungi_2025.mp3',
-    nombre: 'Fungi',
-    pos: { x: -18, y: 2, z: 8 }
-  },
-  {
-    archivo: 'arboles/Daniel Lanark - La luz que refleja en el piso de una habitación vacía.mp3',
-    nombre: 'La luz que refleja',
-    pos: { x: 20, y: -3, z: 5 }
-  },
-  {
-    archivo: 'arboles/Vidaesquiva_Arroyo_2025.mp3',
-    nombre: 'Arroyo',
-    pos: { x: 5, y: 6, z: 18 }
-  },
-  {
-    archivo: 'arboles/AbiGail_AbigailCohen_CadaverExquisito_2025.mp3',
-    nombre: 'Cadáver Exquisito',
-    pos: { x: -10, y: -2, z: -24 }
-  },
-  {
-    archivo: 'arboles/AloArco_AlondraAriza_Yugen_2025.mp3',
-    nombre: 'Yugen',
-    pos: { x: 28, y: 1, z: -16 }
-  },
-  {
-    archivo: 'arboles/Cuarto Oscuro_Ronnie Bassili_Nébula_2025.mp3',
-    nombre: 'Nébula',
-    pos: { x: -26, y: 4, z: -12 }
-  },
-  {
-    archivo: 'arboles/Daniel Garcia - sliding on the heights - Dan Torch.mp3',
-    nombre: 'Sliding on the Heights',
-    pos: { x: 14, y: -4, z: -30 }
-  },
-  {
-    archivo: 'arboles/FernandoGuerra_(im)pulso_2025.mp3',
-    nombre: '(im)pulso',
-    pos: { x: -8, y: 5, z: 32 }
-  },
-  {
-    archivo: 'arboles/PPP_AgustinaPaz_Loro_2025.mp3',
-    nombre: 'Loro',
-    pos: { x: -30, y: -1, z: 20 }
-  },
-  {
-    archivo: 'arboles/Rocio Morgenstern - Desde nuestras ruinas.mp3',
-    nombre: 'Desde nuestras ruinas',
-    pos: { x: 22, y: 3, z: 26 }
-  },
-  {
-    archivo: 'arboles/Synthiago Duran-Estalactitas.mp3',
-    nombre: 'Estalactitas',
-    pos: { x: -20, y: -5, z: -32 }
-  },
-  {
-    archivo: 'arboles/_AlejandroZuluaga_Medikal_2025.mp3',
-    nombre: 'Medikal',
-    pos: { x: 34, y: 2, z: -4 }
-  }
-];
-
-// — Parámetros del espacio —
-const RADIO_BOSQUE       = 45;   // límite esférico del espacio
-const VELOCIDAD          = 0.09; // unidades por frame
-const SENS_MOUSE         = 0.0018;
-const ROLLOFF            = 1.5;
-const REF_DIST           = 1;
-const MAX_DIST           = 80;
-const ESCALA_POSICIONES  = 1.0;  // multiplica las posiciones de los árboles; < 1 = más juntos
-const DIST_ACTIVACION    = 50;   // distancia máxima para activar un árbol
-const FADE_TIEMPO        = 0.6;  // segundos de fade in/out al activar/desactivar
-
-// — Estado del oyente —
-let posicion = { x: 0, y: 0, z: 0 };
-let yaw   = 0;   // rotación horizontal (radianes)
-let pitch = 0;   // inclinación vertical
-
-const teclas = new Set();
+let movementState = {
+  position: { ...INITIAL_MOVEMENT_STATE.position },
+  yaw: INITIAL_MOVEMENT_STATE.yaw,
+  pitch: INITIAL_MOVEMENT_STATE.pitch
+};
 
 // — Inicio —
 document.getElementById('btn-entrar').addEventListener('click', async () => {
@@ -115,21 +52,19 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   const bosqueEl = document.getElementById('bosque');
   bosqueEl.style.display = 'block';
 
-  // Pointer Lock
-  bosqueEl.requestPointerLock();
-  document.addEventListener('pointerlockchange', () => {
-    if (!document.pointerLockElement) {
-      bosqueEl.addEventListener('click', () => bosqueEl.requestPointerLock(), { once: true });
-    }
+  const movementEngine = createMovementEngine({
+    initialState: INITIAL_MOVEMENT_STATE,
+    bounds: { radius: RADIO_BOSQUE },
+    modes: {
+      keyboardMouse: createKeyboardMouseMode({
+        targetElement: bosqueEl,
+        sensitivity: SENS_MOUSE,
+        velocity: VELOCIDAD
+      })
+    },
+    initialModeId: 'keyboardMouse'
   });
-
-  // Controles
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('keydown', e => {
-    teclas.add(e.code);
-    e.preventDefault(); // evitar scroll con flechas/espacio
-  });
-  document.addEventListener('keyup',  e => teclas.delete(e.code));
+  movementState = movementEngine.getState();
 
   // Desvanecer hint de controles después de 6s
   setTimeout(() => {
@@ -139,7 +74,7 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   // Loop principal
   const mapaCtx = document.getElementById('minimapa').getContext('2d');
   function frame() {
-    mover();
+    movementEngine.update();
     actualizarOyente(audioCtx);
     activarPorDistancia(audioCtx);
     dibujarMapa(mapaCtx);
@@ -153,44 +88,43 @@ async function cargarArboles(audioCtx) {
   const promesas = ARBOLES.map(arbol => new Promise(resolve => {
     try {
       const rutaAudio = resolverRutaAudio(arbol.archivo);
-      const el = new Audio();
-      el.crossOrigin = 'anonymous';
-      el.src = rutaAudio;
-      el.loop = true;
-      el.preload = 'auto';
+      const audioElement = new Audio();
+      audioElement.crossOrigin = 'anonymous';
+      audioElement.src = rutaAudio;
+      audioElement.loop = true;
+      audioElement.preload = 'auto';
 
-      const source = audioCtx.createMediaElementSource(el);
+      const source = audioCtx.createMediaElementSource(audioElement);
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.value = 0;
 
-      const gain = audioCtx.createGain();
-      gain.gain.value = 0;
+      const pannerNode = audioCtx.createPanner();
+      pannerNode.panningModel  = PANNING_MODEL;
+      pannerNode.distanceModel = DISTANCE_MODEL;
+      pannerNode.refDistance    = REF_DIST;
+      pannerNode.maxDistance    = MAX_DIST;
+      pannerNode.rolloffFactor = ROLLOFF;
+      pannerNode.positionX.value = arbol.pos.x * ESCALA_POSICIONES;
+      pannerNode.positionY.value = arbol.pos.y * ESCALA_POSICIONES;
+      pannerNode.positionZ.value = arbol.pos.z * ESCALA_POSICIONES;
 
-      const panner = audioCtx.createPanner();
-      panner.panningModel  = 'HRTF';
-      panner.distanceModel = 'inverse';
-      panner.refDistance    = REF_DIST;
-      panner.maxDistance    = MAX_DIST;
-      panner.rolloffFactor = ROLLOFF;
-      panner.positionX.value = arbol.pos.x * ESCALA_POSICIONES;
-      panner.positionY.value = arbol.pos.y * ESCALA_POSICIONES;
-      panner.positionZ.value = arbol.pos.z * ESCALA_POSICIONES;
+      source.connect(gainNode);
+      gainNode.connect(pannerNode);
+      pannerNode.connect(audioCtx.destination);
 
-      source.connect(gain);
-      gain.connect(panner);
-      panner.connect(audioCtx.destination);
+      arbol.audioElement = audioElement;
+      arbol.gainNode     = gainNode;
+      arbol.pannerNode   = pannerNode;
+      arbol.activo       = false;
+      arbol.cargado      = true;
 
-      arbol.audioEl = el;
-      arbol.gain    = gain;
-      arbol.panner  = panner;
-      arbol.activo  = false;
-      arbol.cargado = true;
-
-      el.addEventListener('canplaythrough', () => resolve(), { once: true });
-      el.addEventListener('error', err => {
+      audioElement.addEventListener('canplaythrough', () => resolve(), { once: true });
+      audioElement.addEventListener('error', err => {
         console.warn(`[bosque] no se pudo cargar: ${rutaAudio}`, err);
         arbol.cargado = false;
         resolve();
       });
-      el.load();
+      audioElement.load();
     } catch (err) {
       console.warn(`[bosque] error preparando: ${arbol.archivo}`, err);
       resolve();
@@ -198,49 +132,6 @@ async function cargarArboles(audioCtx) {
   }));
 
   await Promise.all(promesas);
-}
-
-// — Mouse —
-function onMouseMove(e) {
-  if (!document.pointerLockElement) return;
-  yaw   -= e.movementX * SENS_MOUSE;
-  pitch -= e.movementY * SENS_MOUSE;
-  // Límite de inclinación vertical
-  pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, pitch));
-}
-
-// — Movimiento —
-function mover() {
-  // Vectores de dirección en el plano horizontal
-  const fx =  Math.sin(yaw);
-  const fz = -Math.cos(yaw);
-  const rx =  Math.cos(yaw);
-  const rz =  Math.sin(yaw);
-
-  let dx = 0, dy = 0, dz = 0;
-
-  if (teclas.has('KeyW') || teclas.has('ArrowUp'))    { dx += fx; dz += fz; }
-  if (teclas.has('KeyS') || teclas.has('ArrowDown'))  { dx -= fx; dz -= fz; }
-  if (teclas.has('KeyA') || teclas.has('ArrowLeft'))  { dx -= rx; dz -= rz; }
-  if (teclas.has('KeyD') || teclas.has('ArrowRight')) { dx += rx; dz += rz; }
-  if (teclas.has('KeyQ') || teclas.has('Space'))      dy += 1;
-  if (teclas.has('KeyE') || teclas.has('ShiftLeft'))  dy -= 1;
-
-  // Normalizar si hay movimiento diagonal
-  const mag = Math.sqrt(dx*dx + dy*dy + dz*dz);
-  if (mag > 0) { dx /= mag; dy /= mag; dz /= mag; }
-
-  const nx = posicion.x + dx * VELOCIDAD;
-  const ny = posicion.y + dy * VELOCIDAD;
-  const nz = posicion.z + dz * VELOCIDAD;
-
-  // Límite esférico — no salir del bosque
-  const dist = Math.sqrt(nx*nx + ny*ny + nz*nz);
-  if (dist < RADIO_BOSQUE) {
-    posicion.x = nx;
-    posicion.y = ny;
-    posicion.z = nz;
-  }
 }
 
 // — Minimapa —
@@ -275,12 +166,12 @@ function dibujarMapa(c) {
     c.fill();
   }
 
-  const px = cx + posicion.x * escala;
-  const py = cy + posicion.z * escala;
+  const px = cx + movementState.position.x * escala;
+  const py = cy + movementState.position.z * escala;
   const lineaLen = 11 * s;
   c.beginPath();
   c.moveTo(px, py);
-  c.lineTo(px + Math.sin(yaw) * lineaLen, py - Math.cos(yaw) * lineaLen);
+  c.lineTo(px + Math.sin(movementState.yaw) * lineaLen, py - Math.cos(movementState.yaw) * lineaLen);
   c.strokeStyle = '#777';
   c.lineWidth = grosor;
   c.stroke();
@@ -292,7 +183,7 @@ function dibujarMapa(c) {
 
   const barX = 159 * s, barY = 24 * s, barW = 7 * s, barH = 132 * s;
   const yMin = -RADIO_BOSQUE, yMax = RADIO_BOSQUE;
-  const tNorm = 1 - (posicion.y - yMin) / (yMax - yMin);
+  const tNorm = 1 - (movementState.position.y - yMin) / (yMax - yMin);
   const indicadorY = barY + tNorm * barH;
 
   c.fillStyle = '#151515';
@@ -311,24 +202,26 @@ function activarPorDistancia(audioCtx) {
   const t = audioCtx.currentTime;
 
   for (const arbol of ARBOLES) {
-    if (!arbol.audioEl || !arbol.cargado) continue;
+    if (!arbol.audioElement || !arbol.cargado) continue;
 
     const ax = arbol.pos.x * ESCALA_POSICIONES;
     const ay = arbol.pos.y * ESCALA_POSICIONES;
     const az = arbol.pos.z * ESCALA_POSICIONES;
-    const dx = posicion.x - ax;
-    const dy = posicion.y - ay;
-    const dz = posicion.z - az;
+  
+    const dx = movementState.position.x - ax;
+    const dy = movementState.position.y - ay;
+    const dz = movementState.position.z - az;
+  
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
     if (dist < DIST_ACTIVACION && !arbol.activo) {
-      arbol.audioEl.play();
-      arbol.gain.gain.cancelScheduledValues(t);
-      arbol.gain.gain.setTargetAtTime(1, t, FADE_TIEMPO / 3);
+      arbol.audioElement.play();
+      arbol.gainNode.gain.cancelScheduledValues(t);
+      arbol.gainNode.gain.setTargetAtTime(1, t, FADE_TIEMPO / 3);
       arbol.activo = true;
     } else if (dist >= DIST_ACTIVACION && arbol.activo) {
-      arbol.gain.gain.cancelScheduledValues(t);
-      arbol.gain.gain.setTargetAtTime(0, t, FADE_TIEMPO / 3);
+      arbol.gainNode.gain.cancelScheduledValues(t);
+      arbol.gainNode.gain.setTargetAtTime(0, t, FADE_TIEMPO / 3);
       arbol.activo = false;
     }
   }
@@ -338,15 +231,15 @@ function activarPorDistancia(audioCtx) {
 function actualizarOyente(audioCtx) {
   const L = audioCtx.listener;
 
-  L.positionX.value = posicion.x;
-  L.positionY.value = posicion.y;
-  L.positionZ.value = posicion.z;
+  L.positionX.value = movementState.position.x;
+  L.positionY.value = movementState.position.y;
+  L.positionZ.value = movementState.position.z;
 
   // Vector forward (con pitch)
-  const cosPitch = Math.cos(pitch);
-  L.forwardX.value =  Math.sin(yaw) * cosPitch;
-  L.forwardY.value =  Math.sin(pitch);
-  L.forwardZ.value = -Math.cos(yaw) * cosPitch;
+  const cosPitch = Math.cos(movementState.pitch);
+  L.forwardX.value =  Math.sin(movementState.yaw) * cosPitch;
+  L.forwardY.value =  Math.sin(movementState.pitch);
+  L.forwardZ.value = -Math.cos(movementState.yaw) * cosPitch;
 
   // Vector up (siempre apuntando al cielo)
   L.upX.value = 0;
