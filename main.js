@@ -88,43 +88,43 @@ async function cargarArboles(audioCtx) {
   const promesas = ARBOLES.map(arbol => new Promise(resolve => {
     try {
       const rutaAudio = resolverRutaAudio(arbol.archivo);
-      const el = new Audio();
-      el.crossOrigin = 'anonymous';
-      el.src = rutaAudio;
-      el.loop = true;
-      el.preload = 'auto';
+      const audioElement = new Audio();
+      audioElement.crossOrigin = 'anonymous';
+      audioElement.src = rutaAudio;
+      audioElement.loop = true;
+      audioElement.preload = 'auto';
 
-      const source = audioCtx.createMediaElementSource(el);
+      const source = audioCtx.createMediaElementSource(audioElement);
       const gainNode = audioCtx.createGain();
       gainNode.gain.value = 0;
 
-      const panner = audioCtx.createPanner();
-      panner.panningModel  = PANNING_MODEL;
-      panner.distanceModel = DISTANCE_MODEL;
-      panner.refDistance    = REF_DIST;
-      panner.maxDistance    = MAX_DIST;
-      panner.rolloffFactor = ROLLOFF;
-      panner.positionX.value = arbol.pos.x * ESCALA_POSICIONES;
-      panner.positionY.value = arbol.pos.y * ESCALA_POSICIONES;
-      panner.positionZ.value = arbol.pos.z * ESCALA_POSICIONES;
+      const pannerNode = audioCtx.createPanner();
+      pannerNode.panningModel  = PANNING_MODEL;
+      pannerNode.distanceModel = DISTANCE_MODEL;
+      pannerNode.refDistance    = REF_DIST;
+      pannerNode.maxDistance    = MAX_DIST;
+      pannerNode.rolloffFactor = ROLLOFF;
+      pannerNode.positionX.value = arbol.pos.x * ESCALA_POSICIONES;
+      pannerNode.positionY.value = arbol.pos.y * ESCALA_POSICIONES;
+      pannerNode.positionZ.value = arbol.pos.z * ESCALA_POSICIONES;
 
       source.connect(gainNode);
-      gainNode.connect(panner);
-      panner.connect(audioCtx.destination);
+      gainNode.connect(pannerNode);
+      pannerNode.connect(audioCtx.destination);
 
-      arbol.audioEl = el;
-      arbol.gainNode = gainNode;
-      arbol.panner   = panner;
-      arbol.activo   = false;
-      arbol.cargado  = true;
+      arbol.audioElement = audioElement;
+      arbol.gainNode     = gainNode;
+      arbol.pannerNode   = pannerNode;
+      arbol.activo       = false;
+      arbol.cargado      = true;
 
-      el.addEventListener('canplaythrough', () => resolve(), { once: true });
-      el.addEventListener('error', err => {
+      audioElement.addEventListener('canplaythrough', () => resolve(), { once: true });
+      audioElement.addEventListener('error', err => {
         console.warn(`[bosque] no se pudo cargar: ${rutaAudio}`, err);
         arbol.cargado = false;
         resolve();
       });
-      el.load();
+      audioElement.load();
     } catch (err) {
       console.warn(`[bosque] error preparando: ${arbol.archivo}`, err);
       resolve();
@@ -202,7 +202,7 @@ function activarPorDistancia(audioCtx) {
   const t = audioCtx.currentTime;
 
   for (const arbol of ARBOLES) {
-    if (!arbol.audioEl || !arbol.cargado) continue;
+    if (!arbol.audioElement || !arbol.cargado) continue;
 
     const ax = arbol.pos.x * ESCALA_POSICIONES;
     const ay = arbol.pos.y * ESCALA_POSICIONES;
@@ -215,7 +215,7 @@ function activarPorDistancia(audioCtx) {
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
     if (dist < DIST_ACTIVACION && !arbol.activo) {
-      arbol.audioEl.play();
+      arbol.audioElement.play();
       arbol.gainNode.gain.cancelScheduledValues(t);
       arbol.gainNode.gain.setTargetAtTime(1, t, FADE_TIEMPO / 3);
       arbol.activo = true;
