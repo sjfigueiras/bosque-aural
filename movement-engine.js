@@ -35,7 +35,8 @@ export function createMovementEngine({
   initialState,
   bounds,
   modes,
-  initialModeId
+  initialModeId,
+  onModeChange
 }) {
   const state = {
     position: { ...initialState.position },
@@ -62,6 +63,11 @@ export function createMovementEngine({
     activeModeId = modeId;
     activeMode = nextMode;
     activeMode.setup?.({ state, bounds, helpers });
+    onModeChange?.({
+      modeId: activeModeId,
+      state,
+      uiHints: activeMode.getUiHints?.() || ''
+    });
   }
 
   function update(dt = 1) {
@@ -89,6 +95,7 @@ export function createMovementEngine({
   return {
     getModeId: () => activeModeId,
     getState: () => state,
+    getUiHints: () => activeMode?.getUiHints?.() || '',
     setMode,
     update
   };
