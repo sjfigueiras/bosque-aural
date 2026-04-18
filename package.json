@@ -1,0 +1,13 @@
+{
+  "name": "bosque-aural",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "build": "npm run build:cloudflare"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "html-minifier-terser": "^7.2.0"
+  }
+}

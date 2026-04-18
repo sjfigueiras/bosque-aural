@@ -2,3 +2,5 @@ arboles/
 .env
 .DS_Store
 graphify-out/
+node_modules/
+dist/
