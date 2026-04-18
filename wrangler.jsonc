@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bosque-aural",
+  "compatibility_date": "2026-04-18",
+  "assets": {
+    "directory": "./dist"
+  }
+}

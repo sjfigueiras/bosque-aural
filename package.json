@@ -4,10 +4,13 @@
   "type": "module",
   "scripts": {
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
-    "build": "npm run build:cloudflare"
+    "build": "npm run build:cloudflare",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
-    "html-minifier-terser": "^7.2.0"
+    "html-minifier-terser": "^7.2.0",
+    "wrangler": "^4.83.0"
   }
 }
