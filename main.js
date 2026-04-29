@@ -1,6 +1,8 @@
 import { createMovementEngine } from './movement-engine.js';
 import { createKeyboardMouseMode } from './keyboard-mouse-mode.js';
 import { createRandomWalkMode } from './random-walk-mode.js';
+import { createDeviceProfile } from './device-profile.js';
+import { createModePill } from './mode-pill.js';
 import {
   ARBOLES,
   DISTANCE_MODEL,
@@ -51,6 +53,8 @@ function resolverRutaAudio(rutaOriginal) {
   return `${AUDIO_BASE_URL}/${nombreArchivo}`;
 }
 
+const deviceProfile = createDeviceProfile();
+
 let movementState = {
   position: { ...INITIAL_MOVEMENT_STATE.position },
   yaw: INITIAL_MOVEMENT_STATE.yaw,
@@ -73,25 +77,143 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   bosqueEl.style.display = 'block';
   const initialModeId = resolverModoMovimientoInicial();
 
+  const keyboardMouseMode = createKeyboardMouseMode({
+    targetElement: bosqueEl,
+    sensitivity: SENS_MOUSE,
+    velocity: VELOCIDAD
+  });
+  const randomWalkMode = createRandomWalkMode({
+    velocity: VELOCIDAD * 0.50
+  });
+
+  const allModes = { keyboardMouse: keyboardMouseMode, randomWalk: randomWalkMode };
+  const availableMetas = Object.values(allModes)
+    .filter(m => m.meta.availableOn[deviceProfile.platform])
+    .map(m => m.meta);
+
+  const validInitialModeId = availableMetas.some(m => m.id === initialModeId)
+    ? initialModeId
+    : availableMetas[0].id;
+
+  let modePill = null;
+  let syncWalkStop = null;
+
   const movementEngine = createMovementEngine({
     initialState: INITIAL_MOVEMENT_STATE,
     bounds: { radius: RADIO_BOSQUE },
-    modes: {
-      keyboardMouse: createKeyboardMouseMode({
-        targetElement: bosqueEl,
-        sensitivity: SENS_MOUSE,
-        velocity: VELOCIDAD
-      }),
-      randomWalk: createRandomWalkMode({
-        velocity: VELOCIDAD * 0.50
-      })
-    },
-    initialModeId,
-    onModeChange({ uiHints }) {
+    modes: allModes,
+    initialModeId: validInitialModeId,
+    onModeChange({ modeId, uiHints }) {
       actualizarHintControles(uiHints);
+      modePill?.setActiveMode(modeId);
+      syncWalkStop?.();
     }
   });
   movementState = movementEngine.getState();
+
+  const pillEl = document.getElementById('mode-pill');
+  const popoverEl = document.getElementById('mode-popover');
+  modePill = createModePill({
+    pillEl,
+    popoverEl,
+    availableMetas,
+    initialModeId: validInitialModeId,
+    onSelect: modeId => movementEngine.setMode(modeId)
+  });
+  if (availableMetas.length <= 1) {
+    pillEl.disabled = true;
+  }
+
+  // — Walk / stop —
+  const walkStopEl = document.getElementById('walk-stop');
+  walkStopEl.innerHTML = '<span class="ws-icon"></span><span class="ws-label"></span>';
+  const wsLabel = walkStopEl.querySelector('.ws-label');
+
+  syncWalkStop = function () {
+    const mode = allModes[movementEngine.getModeId()];
+    const supports = mode?.meta?.supportsWalkToggle ?? false;
+    walkStopEl.hidden = !supports;
+    if (!supports) return;
+    const walking = mode.isWalking();
+    walkStopEl.dataset.state = walking ? 'walking' : 'stopped';
+    wsLabel.textContent = walking ? 'stop' : 'walk';
+  }
+
+  walkStopEl.addEventListener('click', () => {
+    const mode = allModes[movementEngine.getModeId()];
+    if (!mode?.meta?.supportsWalkToggle) return;
+    mode.setWalking(!mode.isWalking());
+    syncWalkStop();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    const mode = allModes[movementEngine.getModeId()];
+    if (!mode?.meta?.supportsWalkToggle) return;
+    e.preventDefault();
+    mode.setWalking(!mode.isWalking());
+    syncWalkStop();
+  });
+
+  syncWalkStop();
+
+  // — Pause modal —
+  const modalEl = document.getElementById('pause-modal');
+  const modalModesEl = document.getElementById('pause-modal-modes');
+  const modalResumeEl = document.getElementById('pause-modal-resume');
+
+  function openModal() {
+    if (movementEngine.getModeId() === 'randomWalk') {
+      allModes.randomWalk.setWalking(false);
+      syncWalkStop();
+    }
+    for (const btn of modalModesEl.querySelectorAll('.pause-mode-btn')) {
+      btn.classList.toggle('active', btn.dataset.modeId === movementEngine.getModeId());
+    }
+    modalEl.hidden = false;
+  }
+
+  function closeModal(nextModeId) {
+    modalEl.hidden = true;
+    if (nextModeId && nextModeId !== movementEngine.getModeId()) {
+      movementEngine.setMode(nextModeId);
+    }
+    if (movementEngine.getModeId() === 'keyboardMouse') {
+      bosqueEl.requestPointerLock();
+    } else {
+      allModes.randomWalk.setWalking(true);
+    }
+    syncWalkStop();
+  }
+
+  // Prevent modal inner clicks from bubbling to bosqueEl (avoids double pointer-lock request)
+  document.getElementById('pause-modal-inner').addEventListener('click', e => e.stopPropagation());
+
+  for (const meta of availableMetas) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pause-mode-btn';
+    btn.dataset.modeId = meta.id;
+    btn.textContent = meta.label;
+    btn.addEventListener('click', () => closeModal(meta.id));
+    modalModesEl.appendChild(btn);
+  }
+
+  modalResumeEl.addEventListener('click', () => closeModal(null));
+
+  // Keyboard mode: modal opens when pointer lock drops
+  document.addEventListener('pointerlockchange', () => {
+    if (!document.pointerLockElement && movementEngine.getModeId() === 'keyboardMouse' && modalEl.hidden) {
+      openModal();
+    }
+  });
+
+  // Escape: open modal (random walk) or close it
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Escape') return;
+    if (!modalEl.hidden) closeModal(null);
+    else if (movementEngine.getModeId() === 'randomWalk') openModal();
+  });
 
   window.BOSQUE_DEBUG = {
     movementEngine,

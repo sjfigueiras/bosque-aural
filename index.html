@@ -25,6 +25,19 @@
         wasd — moverse &nbsp;|&nbsp; mouse — orientarse &nbsp;|&nbsp; q/e — altura
       </div>
     </div>
+    <div id="top-right">
+      <button id="mode-pill" type="button" aria-haspopup="true" aria-expanded="false"></button>
+      <div id="mode-popover" hidden></div>
+    </div>
+    <button id="walk-stop" type="button" hidden></button>
+    <div id="pause-modal" hidden>
+      <div id="pause-modal-inner">
+        <p class="pause-modal-label">menú</p>
+        <div id="pause-modal-modes"></div>
+        <button id="pause-modal-resume" type="button">continuar</button>
+        <p class="pause-modal-hint">esc — continuar</p>
+      </div>
+    </div>
   </div>
 
   <script>

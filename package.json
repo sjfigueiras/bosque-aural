@@ -6,7 +6,8 @@
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "build": "npm run build:cloudflare",
     "deploy": "wrangler deploy",
-    "preview": "wrangler dev"
+    "preview": "wrangler dev",
+    "serve": "python3 -m http.server 8000"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

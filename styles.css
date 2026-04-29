@@ -109,6 +109,264 @@ body {
   text-align: center;
 }
 
+/* — Mode pill — */
+:root {
+  --hud-bg: rgba(20, 20, 20, 0.94);
+  --hud-border: rgba(255, 255, 255, 0.15);
+  --hud-text: rgba(255, 255, 255, 0.9);
+  --green-dot: #97c459;
+}
+
+#top-right {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 0.4rem;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+#mode-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: var(--hud-text);
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.75rem;
+  height: 26px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+#mode-pill:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+#mode-pill:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.mode-pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #888;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+#mode-pill[data-status="walking"] .mode-pill-dot {
+  background: var(--green-dot);
+}
+
+.mode-pill-label-short { display: none; }
+
+#mode-popover {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  background: var(--hud-bg);
+  border: 0.5px solid var(--hud-border);
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 150px;
+}
+
+.popover-item {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.popover-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.popover-item.active {
+  color: var(--green-dot);
+}
+
+@media (pointer: coarse) {
+  .mode-pill-label-long { display: none; }
+  .mode-pill-label-short { display: inline; }
+}
+
+/* — Pause modal — */
+#pause-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 8, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+#pause-modal[hidden] { display: none; }
+
+#pause-modal-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pause-modal-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  color: #333;
+}
+
+.pause-mode-btn,
+#pause-modal-resume {
+  background: none;
+  border: 1px solid #666;
+  color: #bbb;
+  padding: 0.55rem 2.5rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+  min-width: 160px;
+  text-align: center;
+}
+
+.pause-mode-btn:hover,
+#pause-modal-resume:hover {
+  border-color: #d0d0d0;
+  color: #d0d0d0;
+}
+
+.pause-mode-btn.active {
+  border-color: var(--green-dot);
+  color: var(--green-dot);
+}
+
+#pause-modal-resume {
+  color: #777;
+  border-color: #444;
+  font-size: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+#pause-modal-resume:hover {
+  border-color: #aaa;
+  color: #aaa;
+}
+
+.pause-modal-hint {
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: #2a2a2a;
+  margin-top: 0.25rem;
+}
+
+/* — Walk / stop — */
+#walk-stop {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  border-radius: 999px;
+  color: #111;
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  padding: 0 1.1rem;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+#walk-stop:hover  { transform: translateX(-50%) scale(1.03); }
+#walk-stop:active { transform: translateX(-50%) scale(0.97); }
+
+#walk-stop[hidden] { display: none; }
+
+.ws-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* two vertical bars when walking */
+#walk-stop[data-state="walking"] .ws-icon::before,
+#walk-stop[data-state="walking"] .ws-icon::after {
+  content: '';
+  display: block;
+  width: 2.5px;
+  height: 9px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+/* right-pointing triangle when stopped */
+#walk-stop[data-state="stopped"] .ws-icon::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 0 5px 9px;
+  border-color: transparent transparent transparent currentColor;
+  background: none;
+  border-radius: 0;
+}
+
+/* Mobile: circular large touch target */
+@media (pointer: coarse) {
+  #walk-stop {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    padding: 0;
+    justify-content: center;
+    bottom: 2.5rem;
+    font-size: 0;       /* hide text label on mobile */
+    letter-spacing: 0;
+    gap: 0;
+  }
+
+  .ws-icon {
+    gap: 3px;
+  }
+
+  #walk-stop[data-state="walking"] .ws-icon::before,
+  #walk-stop[data-state="walking"] .ws-icon::after {
+    width: 3.5px;
+    height: 12px;
+  }
+
+  #walk-stop[data-state="stopped"] .ws-icon::before {
+    border-width: 7px 0 7px 12px;
+  }
+}
+
 /* Minimapa */
 #minimapa {
   opacity: 0.75;
