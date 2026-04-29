@@ -21,6 +21,15 @@ export function createKeyboardMouseMode({
   }
 
   return {
+    meta: {
+      id: 'keyboardMouse',
+      label: 'teclado + mouse',
+      availableOn: { desktop: true, mobile: false },
+      requires: ['pointerLock', 'keyboard'],
+      experimental: false,
+      supportsWalkToggle: false
+    },
+
     getUiHints() {
       return KEYBOARD_MOUSE_UI_HINTS;
     },
@@ -63,6 +72,12 @@ export function createKeyboardMouseMode({
       pressedKeys.clear();
       yawDelta = 0;
       pitchDelta = 0;
+
+      targetElement.removeEventListener('click', requestPointerLock);
+
+      if (documentRef.pointerLockElement === targetElement) {
+        documentRef.exitPointerLock();
+      }
 
       if (handlePointerLockChange) {
         documentRef.removeEventListener('pointerlockchange', handlePointerLockChange);

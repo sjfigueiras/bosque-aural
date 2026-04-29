@@ -44,6 +44,7 @@ export function createRandomWalkMode({
 }) {
   let targetYaw = 0;
   let framesUntilTurn = 0;
+  let walking = true;
 
   function pickNextHeading(state, bounds, forceCenterBias = false) {
     const distanceRatio = distanceFromCenter(state.position) / bounds.radius;
@@ -65,8 +66,25 @@ export function createRandomWalkMode({
   }
 
   return {
+    meta: {
+      id: 'randomWalk',
+      label: 'random walk',
+      availableOn: { desktop: true, mobile: true },
+      requires: [],
+      experimental: false,
+      supportsWalkToggle: true
+    },
+
     getUiHints() {
       return RANDOM_WALK_UI_HINTS;
+    },
+
+    isWalking() {
+      return walking;
+    },
+
+    setWalking(next) {
+      walking = Boolean(next);
     },
 
     setup({ state, bounds }) {
@@ -77,6 +95,14 @@ export function createRandomWalkMode({
     teardown() {},
 
     update({ state, dt = 1, bounds }) {
+      if (!walking) {
+        return {
+          yaw: state.yaw,
+          pitch: state.pitch,
+          position: { ...state.position }
+        };
+      }
+
       framesUntilTurn -= dt;
 
       const distanceRatio = distanceFromCenter(state.position) / bounds.radius;
