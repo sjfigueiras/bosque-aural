@@ -7,7 +7,9 @@
     "build": "npm run build:cloudflare",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev",
-    "serve": "python3 -m http.server 8000"
+    "serve": "python3 -m http.server 8000",
+    "analyze": "node scripts/analyze-grains.mjs",
+    "analyze:upload": "node scripts/analyze-grains.mjs --upload"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

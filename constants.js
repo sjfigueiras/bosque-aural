@@ -86,3 +86,13 @@ export const INITIAL_MOVEMENT_STATE = {
   yaw: 0,
   pitch: 0
 };
+
+// — Capa granular —
+export const GRAIN_BASE_DENSITY     = 3;     // granos/seg por árbol activo
+export const GRAIN_DURATION_MIN     = 0.06;  // segundos
+export const GRAIN_DURATION_MAX     = 0.22;  // segundos
+export const GRAIN_ENVELOPE_ATTACK  = 0.02;  // segundos
+export const GRAIN_ENVELOPE_RELEASE = 0.05;  // segundos
+export const GRAIN_LOOKAHEAD        = 0.1;   // adelanto del scheduler (segundos)
+export const GRAIN_VELOCITY_FACTOR  = 2.0;   // multiplicador de densidad a velocidad máxima
+export const GRAIN_MASTER_GAIN      = 0.35;  // nivel de mezcla de la capa granular

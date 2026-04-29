@@ -4,3 +4,5 @@ arboles/
 graphify-out/
 node_modules/
 dist/
+.grains-state.json
+tmp/
