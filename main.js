@@ -1,6 +1,7 @@
 import { createMovementEngine } from './movement-engine.js';
 import { createKeyboardMouseMode } from './keyboard-mouse-mode.js';
 import { createRandomWalkMode } from './random-walk-mode.js';
+import { createGrainEngine } from './grain-engine.js';
 import {
   ARBOLES,
   DISTANCE_MODEL,
@@ -57,6 +58,9 @@ let movementState = {
   pitch: INITIAL_MOVEMENT_STATE.pitch
 };
 
+let grainEngine = null;
+let prevPosition = { ...INITIAL_MOVEMENT_STATE.position };
+
 // — Inicio —
 document.getElementById('btn-entrar').addEventListener('click', async () => {
   const btn = document.getElementById('btn-entrar');
@@ -66,6 +70,19 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   const audioCtx = new AudioContext();
 
   await cargarArboles(audioCtx);
+
+  const grainManifestUrl = window.BOSQUE_CONFIG?.grainManifestUrl || '/grains.json';
+  try {
+    const manifest = await fetch(grainManifestUrl).then(r => r.json());
+    grainEngine = createGrainEngine({
+      audioCtx,
+      manifest,
+      treeData: ARBOLES,
+      destination: audioCtx.destination
+    });
+  } catch (e) {
+    console.warn('[bosque] manifest de granos no encontrado, capa granular desactivada', e);
+  }
 
   // Mostrar el bosque
   document.getElementById('inicio').style.display = 'none';
@@ -108,6 +125,18 @@ document.getElementById('btn-entrar').addEventListener('click', async () => {
   const mapaCtx = document.getElementById('minimapa').getContext('2d');
   function frame() {
     movementEngine.update();
+
+    const pos = movementState.position;
+    const dx = pos.x - prevPosition.x;
+    const dy = pos.y - prevPosition.y;
+    const dz = pos.z - prevPosition.z;
+    const velocity = Math.min(Math.sqrt(dx * dx + dy * dy + dz * dz) / VELOCIDAD, 1);
+    prevPosition.x = pos.x;
+    prevPosition.y = pos.y;
+    prevPosition.z = pos.z;
+
+    grainEngine?.update(velocity);
+
     actualizarOyente(audioCtx);
     activarPorDistancia(audioCtx);
     dibujarMapa(mapaCtx);
@@ -252,10 +281,12 @@ function activarPorDistancia(audioCtx) {
       arbol.gainNode.gain.cancelScheduledValues(t);
       arbol.gainNode.gain.setTargetAtTime(1, t, FADE_TIEMPO / 3);
       arbol.activo = true;
+      grainEngine?.setActive(ARBOLES.indexOf(arbol), true);
     } else if (dist >= DIST_ACTIVACION && arbol.activo) {
       arbol.gainNode.gain.cancelScheduledValues(t);
       arbol.gainNode.gain.setTargetAtTime(0, t, FADE_TIEMPO / 3);
       arbol.activo = false;
+      grainEngine?.setActive(ARBOLES.indexOf(arbol), false);
     }
   }
 }
